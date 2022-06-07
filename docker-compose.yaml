@@ -1,0 +1,10 @@
+version: '2'
+services:
+  bikeday:
+    image: ailinykh/bikeday-cert
+    container_name: bikeday-cert
+    ports:
+      - 3000:3010
+    restart: always
+    volumes:
+      - ./static:/app/static
