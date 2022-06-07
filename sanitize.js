@@ -14,7 +14,7 @@ const sanitizePath = (name) =>
 const sanitizeName = (name) =>
   name
     .split('')
-    .map((s) => (s in alphabet ? s : ''))
+    .map((s) => (s in alphabet ? s : s.replace(/\W/, '')))
     .join('')
 
 module.exports = { sanitizeName, sanitizePath }
