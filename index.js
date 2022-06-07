@@ -1,5 +1,11 @@
 const { createServer } = require('http')
-const { createApp, useBody, appendHeader, sendStream } = require('h3')
+const {
+  createApp,
+  appendHeader,
+  sendStream,
+  sendRedirect,
+  useQuery,
+} = require('h3')
 const { exec } = require('child_process')
 const { sanitizeName, sanitizePath } = require('./sanitize')
 
@@ -31,6 +37,11 @@ const generate = (text, filepath) => {
 const consume = async (name, filename, res) => {
   const filepath = path.join(__dirname, 'static', filename + '.png')
   appendHeader(res, 'Content-Type', 'application/octet-stream')
+  appendHeader(
+    res,
+    'Content-Disposition',
+    'attachment; filename="certificate-bikeday-2022.png"'
+  )
 
   if (fs.existsSync(filepath)) {
     console.log(`send exisitng file for ${name}`)
@@ -43,11 +54,13 @@ const consume = async (name, filename, res) => {
 }
 
 const app = createApp()
-app.use('/', async ({ req, res }) => {
-  const { name } = await useBody(req)
+app.use('/2022', async ({ req, res }) => {
+  const { name } = useQuery(req)
   if (name == undefined) return { success: false, error: 'name required' }
 
   return consume(sanitizeName(name), sanitizePath(name), res)
 })
+
+app.use('/', (event) => sendRedirect(event, 'https://bikeday.me'))
 
 createServer(app).listen(process.env.PORT || 3000)
