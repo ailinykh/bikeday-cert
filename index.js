@@ -33,7 +33,7 @@ const generate = (text, template, filepath) => {
 }
 
 const consume = async (name, filename, year, res) => {
-  const filepath = path.join(__dirname, 'static', filename + '.png')
+  const filepath = path.join(__dirname, 'static', `${filename}-${year}.png`)
   appendHeader(res, 'Content-Type', 'application/octet-stream')
   appendHeader(
     res,
