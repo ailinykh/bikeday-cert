@@ -4,7 +4,7 @@ const {
   appendHeader,
   sendStream,
   sendRedirect,
-  useQuery,
+  getQuery,
 } = require('h3')
 const { exec } = require('child_process')
 const { sanitizeName, sanitizePath } = require('./sanitize')
@@ -12,9 +12,7 @@ const { sanitizeName, sanitizePath } = require('./sanitize')
 const fs = require('fs')
 const path = require('path')
 
-const template = './cert-2022.png'
-
-const generate = (text, filepath) => {
+const generate = (text, template, filepath) => {
   return new Promise((resolve, reject) => {
     try {
       exec(
@@ -34,13 +32,13 @@ const generate = (text, filepath) => {
   })
 }
 
-const consume = async (name, filename, res) => {
+const consume = async (name, filename, year, res) => {
   const filepath = path.join(__dirname, 'static', filename + '.png')
   appendHeader(res, 'Content-Type', 'application/octet-stream')
   appendHeader(
     res,
     'Content-Disposition',
-    'attachment; filename="certificate-bikeday-2022.png"'
+    `attachment; filename="certificate-bikeday-${year}.png"`
   )
 
   if (fs.existsSync(filepath)) {
@@ -49,16 +47,23 @@ const consume = async (name, filename, res) => {
   }
 
   console.log(`generate for ${name}`)
-  await generate(name, filepath)
+  await generate(name, `./cert-${year}.png`, filepath)
   return sendStream(res, fs.createReadStream(filepath))
 }
 
 const app = createApp()
 app.use('/2022', async ({ req, res }) => {
-  const { name } = useQuery(req)
+  const { name } = getQuery(req)
   if (name == undefined) return { success: false, error: 'name required' }
 
-  return consume(sanitizeName(name), sanitizePath(name), res)
+  return consume(sanitizeName(name), sanitizePath(name), '2022', res)
+})
+
+app.use('/2023', async ({ req, res }) => {
+  const { name } = getQuery(req)
+  if (name == undefined) return { success: false, error: 'name required' }
+
+  return consume(sanitizeName(name), sanitizePath(name), '2023', res)
 })
 
 app.use('/', (event) => sendRedirect(event, 'https://bikeday.me'))
